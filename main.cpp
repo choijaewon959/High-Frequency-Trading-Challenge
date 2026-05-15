@@ -7,6 +7,8 @@
 #include <cstring>
 #include <cctype>
 
+#include "Profiler.h"
+
 using namespace std;
 
 #define PORT 12345
@@ -87,12 +89,18 @@ int main() {
 
     IntReader reader(sock);
 
+    Profiler profiler("profile.csv", "int_reader_string_buffer_v1");
+
     while (true) {
+        auto t0 = profiler.now();
+
         int challengeId;
         int N;
 
         if (!reader.readInt(challengeId)) break;
         if (!reader.readInt(N)) break;
+
+        auto t1 = profiler.now();
 
         if (N != 128) {
             cerr << "Bad N received: " << N << ". Stream got corrupted." << endl;
@@ -114,6 +122,8 @@ int main() {
             }
         }
 
+        auto t2 = profiler.now();
+
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
                 if (!reader.readInt(B[i][j])) {
@@ -124,6 +134,8 @@ int main() {
             }
         }
 
+        auto t3 = profiler.now();
+
         long long answer = 0;
 
         // Example: C[0][0] of A * B
@@ -131,8 +143,31 @@ int main() {
             answer += 1LL * A[0][k] * B[k][0];
         }
 
+        auto t4 = profiler.now();
+
         string answerStr = to_string(answer) + "\n";
         send(sock, answerStr.c_str(), answerStr.size(), 0);
+
+        auto t5 = profiler.now();
+
+        long long header_us = profiler.usBetween(t0, t1);
+        long long read_A_us = profiler.usBetween(t1, t2);
+        long long read_B_us = profiler.usBetween(t2, t3);
+        long long compute_us = profiler.usBetween(t3, t4);
+        long long send_us = profiler.usBetween(t4, t5);
+        long long total_us = profiler.usBetween(t0, t5);
+
+        profiler.log(
+            challengeId,
+            N,
+            header_us,
+            read_A_us,
+            read_B_us,
+            compute_us,
+            send_us,
+            total_us,
+            answer
+        );
 
         cout << "Sent answer: " << answer << endl;
     }
