@@ -4,64 +4,14 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <cstring>
-#include <cctype>
-
 #include "Profiler.h"
+#include "Parser.h"
 
 using namespace std;
 
 #define PORT 12345
-#define BUFFER_SIZE 4096
-
-class IntReader {
-private:
-    int sock;
-    string buf;
-
-public:
-    IntReader(int s) : sock(s) {}
-
-    bool readInt(int& x) {
-        while (true) {
-            // Remove leading whitespace
-            size_t i = 0;
-            while (i < buf.size() && isspace((unsigned char)buf[i])) {
-                i++;
-            }
-            if (i > 0) {
-                buf.erase(0, i);
-            }
-
-            // Find end of integer token
-            size_t j = 0;
-            while (j < buf.size() && !isspace((unsigned char)buf[j])) {
-                j++;
-            }
-
-            // We have a complete token only if it ends with whitespace
-            if (j < buf.size()) {
-                string token = buf.substr(0, j);
-                buf.erase(0, j);
-
-                if (!token.empty()) {
-                    x = stoi(token);
-                    return true;
-                }
-            }
-
-            // Need more bytes
-            char temp[BUFFER_SIZE];
-            int bytes = recv(sock, temp, BUFFER_SIZE, 0);
-
-            if (bytes <= 0) {
-                return false;
-            }
-
-            buf.append(temp, bytes);
-        }
-    }
-};
+#define PROFILE_OUTPUT "profile.csv"
+#define MODEL_VERSION "int_reader_string_buffer_v1"
 
 int main() {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -87,9 +37,10 @@ int main() {
     string name = "Team_MFJ";
     send(sock, name.c_str(), name.size(), 0);
 
-    IntReader reader(sock);
+    // Parser reader(sock);
+    FastParser reader(sock);
 
-    Profiler profiler("profile.csv", "int_reader_string_buffer_v1");
+    Profiler profiler(PROFILE_OUTPUT, MODEL_VERSION);
 
     while (true) {
         auto t0 = profiler.now();
