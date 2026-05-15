@@ -15,7 +15,7 @@ To secure a competitive edge in latency, we optimized the client-side socket rea
 
 #### 1.2. Parsing Layer: Custom Pointer Math vs. `stringstream`/`atoi`
 *   **The Problem:** Standard library tools (`std::stringstream`, `std::stoi`, or `atoi`) are plagued by heavy heap memory allocations and local geography/locale lookups that stall the CPU.
-*   **The Optimization:** Designed a high-performance, inline `FastReader` utilizing raw pointer scanning. It processes numbers straight out of the flat memory buffer via localized register accumulation:
+*   **The Optimization:** Designed a high-performance, inline `FastParser` utilizing raw pointer scanning. It processes numbers straight out of the flat memory buffer via localized register accumulation:
     ```cpp
     while (c >= '0' && c <= '9') {
         x = x * 10 + (c - '0');
@@ -31,11 +31,11 @@ The following table tracks the average time in microseconds (μs) required to mo
 | Optimization Version    | Avg Read Matrix A (μs) | Avg Read Matrix B (μs) | Total Parsing Time (μs) | Performance Gain |
 |:------------------------| :---: | :---: | :---: | :---: |
 | **v1: Standard Parser** | 6,094.74 | 5,700.11 | 11,794.85 | Baseline |
-| **v2: FastReader**      | **729.63** | **557.58** | **1,287.21** | **9.16x Faster** |
+| **v2: FastParser**      | **729.63** | **557.58** | **1,287.21** | **9.16x Faster** |
 
 - **Optimization Impact Analysis:**
-By replacing high-level string abstractions with our custom **FastReader**, we achieved the following:
+By replacing high-level string abstractions with our custom **FastParser**, we achieved the following:
 
   1.  **91% Latency Reduction:** Total parsing time dropped from ~11.8ms to ~1.3ms.
   2.  **Zero-Allocation Pipeline:** v2 avoids all `std::string` heap allocations during the read loop, preventing GC-like pauses and memory fragmentation.
-  3.  **Cache Efficiency:** The optimized reader operates within the L1/L2 cache boundaries, ensuring the CPU never stalls waiting for system RAM.
+  3.  **Cache Efficiency:** The optimized parser operates within the L1/L2 cache boundaries, ensuring the CPU never stalls waiting for system RAM.
