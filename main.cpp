@@ -102,12 +102,12 @@ int main() {
         compute.flatten(A, B);
         //calcul matmul blocked
         compute.matmul_128_blocked();
-        answer=compute.result();
+        //answer=compute.result();
         //answer = traceAB_flat(A_flat, B_flat);
 
         auto t4 = profiler.now();
 
-        send(sock, reinterpret_cast<char*>(&answer[0]), answer.size() * sizeof(long long), 0);
+        //send(sock, reinterpret_cast<char*>(&answer[0]), answer.size() * sizeof(long long), 0);
 
         //string answerStr = to_string(answer) + "\n";
         //send(sock, answerStr.c_str(), answerStr.size(), 0);
