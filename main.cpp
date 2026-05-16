@@ -95,7 +95,7 @@ int main() {
         //    answer += 1LL * A[0][k] * B[k][0];
         //}
 
-        vector<long long> answer;
+        long long answer;
 
         mm compute;
 
@@ -103,6 +103,7 @@ int main() {
         //calcul matmul blocked
         compute.matmul_128_blocked();
         answer=compute.result();
+        //answer = traceAB_flat(A_flat, B_flat);
 
         auto t4 = profiler.now();
 

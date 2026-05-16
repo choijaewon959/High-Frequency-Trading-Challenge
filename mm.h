@@ -54,6 +54,17 @@ public:
     const vector<long long>& result() const {
         return Cflat;
     }
+    long long traceAB_flat(const vector<int>& Aflat, const vector<int>& Bflat) {
+        long long ans=0;
+        for (int i=0; i<N; ++i) {
+            int row = i*N;
+
+            for (int k=0; k<N; ++k) {
+                ans+= 1LL * Aflat[row+k] * Bflat[k*N+i];
+            }
+        }
+        return ans;
+    }
 };
 
 #endif //HIGH_FREQUENCY_TRADING_CHALLENGE_MM_H
