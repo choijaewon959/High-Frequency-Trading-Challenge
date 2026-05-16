@@ -15,6 +15,7 @@
 #include <arpa/inet.h>
 #include <fstream>
 #include "json.hpp"
+#include <sstream>
 
 using namespace std;
 using namespace std::chrono;
