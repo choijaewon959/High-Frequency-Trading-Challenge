@@ -54,7 +54,7 @@ public:
     const vector<long long>& result() const {
         return Cflat;
     }
-    long long traceAB_flat(const vector<int>& Aflat, const vector<int>& Bflat) {
+    long long traceAB_flat() {
         long long ans=0;
         for (int i=0; i<N; ++i) {
             int row = i*N;
