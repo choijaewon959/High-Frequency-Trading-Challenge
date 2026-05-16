@@ -39,3 +39,67 @@ By replacing high-level string abstractions with our custom **FastParser**, we a
   1.  **91% Latency Reduction:** Total parsing time dropped from ~11.8ms to ~1.3ms.
   2.  **Zero-Allocation Pipeline:** v2 avoids all `std::string` heap allocations during the read loop, preventing GC-like pauses and memory fragmentation.
   3.  **Cache Efficiency:** The optimized parser operates within the L1/L2 cache boundaries, ensuring the CPU never stalls waiting for system RAM.
+
+
+## optimization techniques
+### 1. Flattened matrix representation
+Incoming matrices are converted from 
+```cpp
+vector<vector<int>>
+```
+to:
+```cpp
+vector<int>
+```
+using row major contiguous storage.
+
+Flattening improves: cache efficiency & vectorization opportunities.
+vector<vector<int>> causes poor spacial locality & cache misses and overall inefficient column access.
+
+### 2. Blocked matrix multiplication
+The multiplication uses cache blocking 
+```cpp
+constexpr int BS = 32;
+```
+instead of taking entire rows / columns.
+
+This improves L1/L2 cache reuse and reduces memory bandwidth pressure which is the main bottleneck in this context.
+This outperforms naive O(n^3).
+
+### 3. Contiguous pointer access
+Vectors are accessed using:
+```cpp
+&Aflat[0]
+```
+to obtain raw pointers giving a lower abstraction overhead and compiler friendly pointer arithmetic.
+
+
+## Network layer
+
+### Send/Receive model
+Sockets transmit raw bytes only so matrices are serialized before transmission.
+```cpp
+send(sock, answerStr.c_str(), answerStr.size(), 0);
+```
+
+for maximum throughput, binary transmission can also be used:
+```cpp
+send(sock, 
+    reinterpret_cast<char*>(&Cflat[0]),
+    answerStr.size() * sizeof(long long),
+    0);
+```
+
+### Build
+```cpp
+g++ -03 -march=native -std=c++17 main.cpp main
+```
+We use these flags at compilation:
+```cpp
+-03
+-march=native
+```
+to further optimize aggressively and facilitate auto-vectorization.
+
+
+

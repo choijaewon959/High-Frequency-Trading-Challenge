@@ -134,7 +134,7 @@ int main() {
         );
         */
 
-        cout << "Sent answer: " << answer << endl;
+        //cout << "Sent answer: " << answer << endl;
     }
 
     close(sock);
