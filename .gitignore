@@ -35,3 +35,6 @@ High_Frequency_Trading_Challenge
 # OS files
 .DS_Store
 Thumbs.db
+
+# CSV
+*.csv
