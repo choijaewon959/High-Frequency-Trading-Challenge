@@ -11,6 +11,9 @@ Makefile
 compile_commands.json
 
 # Executables / binaries
+client
+server
+High_Frequency_Trading_Challenge
 *.exe
 *.out
 *.app
