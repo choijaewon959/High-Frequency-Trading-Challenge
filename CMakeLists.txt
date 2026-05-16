@@ -7,6 +7,7 @@ add_executable(High_Frequency_Trading_Challenge main.cpp
         Profiler.h
         Parser.h
         server.cpp
+        mm.h
 )
 add_executable(server server.cpp
         json.hpp

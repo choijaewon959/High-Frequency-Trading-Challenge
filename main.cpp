@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include "Profiler.h"
 #include "Parser.h"
+#include "mm.h"
 
 using namespace std;
 
@@ -87,17 +88,28 @@ int main() {
 
         auto t3 = profiler.now();
 
-        long long answer = 0;
+        //long long answer = 0;
 
         // Example: C[0][0] of A * B
-        for (int k = 0; k < N; k++) {
-            answer += 1LL * A[0][k] * B[k][0];
-        }
+        //for (int k = 0; k < N; k++) {
+        //    answer += 1LL * A[0][k] * B[k][0];
+        //}
+
+        vector<long long> answer;
+
+        mm compute;
+
+        compute.flatten(A, B);
+        //calcul matmul blocked
+        compute.matmul_128_blocked();
+        answer=compute.result();
 
         auto t4 = profiler.now();
 
-        string answerStr = to_string(answer) + "\n";
-        send(sock, answerStr.c_str(), answerStr.size(), 0);
+        send(sock, reinterpret_cast<char*>(&answer[0]), answer.size() * sizeof(long long), 0);
+
+        //string answerStr = to_string(answer) + "\n";
+        //send(sock, answerStr.c_str(), answerStr.size(), 0);
 
         auto t5 = profiler.now();
 
@@ -108,6 +120,7 @@ int main() {
         long long send_us = profiler.usBetween(t4, t5);
         long long total_us = profiler.usBetween(t0, t5);
 
+        /*
         profiler.log(
             challengeId,
             N,
@@ -119,6 +132,7 @@ int main() {
             total_us,
             answer
         );
+        */
 
         cout << "Sent answer: " << answer << endl;
     }
