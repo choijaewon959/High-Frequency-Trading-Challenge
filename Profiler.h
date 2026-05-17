@@ -48,7 +48,7 @@ public:
             out << "trial_name,"
                 << "challenge_id,"
                 << "N,"
-                << "header_us,"
+                // << "header_us,"
                 << "read_A_us,"
                 << "read_B_us,"
                 << "compute_us,"
@@ -61,7 +61,7 @@ public:
     void log(
         int challengeId,
         int N,
-        long long header_us,
+        // long long header_us,
         long long read_A_us,
         long long read_B_us,
         long long compute_us,
@@ -79,7 +79,7 @@ public:
         out << trialName << ","
             << challengeId << ","
             << N << ","
-            << header_us << ","
+            // << header_us << ","
             << read_A_us << ","
             << read_B_us << ","
             << compute_us << ","
