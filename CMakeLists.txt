@@ -3,7 +3,7 @@ project(High_Frequency_Trading_Challenge)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(High_Frequency_Trading_Challenge main.cpp
+add_executable(client main.cpp
         Profiler.h
         Parser.h
         mm.h
