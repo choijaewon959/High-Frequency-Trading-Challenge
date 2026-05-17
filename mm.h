@@ -1,47 +1,33 @@
-//
-// Created by Mohammed RHAZI on 16/05/2026.
-//
-
 #ifndef HIGH_FREQUENCY_TRADING_CHALLENGE_MM_H
 #define HIGH_FREQUENCY_TRADING_CHALLENGE_MM_H
+
 #include <vector>
 #include <algorithm>
-using namespace std;
 
 constexpr int N = 128;
 constexpr int BS = 32;
-constexpr int S = N*N;
+constexpr int S = N * N;
 
 class mm {
-    vector<int> Aflat;
-    vector<int> Bflat;
-    vector<long long> Cflat;
+private:
+    static void matmul_128_blocked(const std::vector<int>& Aflat,
+                                   const std::vector<int>& Bflat,
+                                   std::vector<long long>& Cflat) {
+        std::fill(Cflat.begin(), Cflat.end(), 0);
 
-public:
-    mm() : Aflat(N*N), Bflat(N*N), Cflat(N*N, 0) {}
+        const int* A = Aflat.data();
+        const int* B = Bflat.data();
+        long long* C = Cflat.data();
 
-    void setMatrices(const vector<int>& A, const vector<int>& B) {
-        Aflat = A;
-        Bflat = B;
-    }
+        for (int ii = 0; ii < N; ii += BS) {
+            for (int kk = 0; kk < N; kk += BS) {
+                for (int jj = 0; jj < N; jj += BS) {
+                    for (int i = ii; i < ii + BS; ++i) {
+                        for (int k = kk; k < kk + BS; ++k) {
+                            int a = A[i * N + k];
 
-    void matmul_128_blocked() {
-        fill(Cflat.begin(), Cflat.end(), 0);
-
-        const int* A = &Aflat[0];
-        const int* B = &Bflat[0];
-        long long* C = &Cflat[0];
-
-        for (int ii=0; ii<N; ii+=BS) {
-            for (int kk=0; kk<N; kk+=BS) {
-                for (int jj=0; jj<N; jj+=BS) {
-
-                    for (int i = ii; i<ii+BS; ++i) {
-                        for (int k=kk ; k<kk+BS; ++k) {
-                            int a = A[i*N + k];
-
-                            for (int j = jj; j<jj+BS; ++j) {
-                                C[i*N + j] += 1LL * a*B[k*N + j];
+                            for (int j = jj; j < jj + BS; ++j) {
+                                C[i * N + j] += 1LL * a * B[k * N + j];
                             }
                         }
                     }
@@ -50,11 +36,7 @@ public:
         }
     }
 
-    const vector<long long>& result() const {
-        return Cflat;
-    }
-
-    long long traceFromC() const {
+    static long long trace_from_C(const std::vector<long long>& Cflat) {
         long long ans = 0;
 
         for (int i = 0; i < N; ++i) {
@@ -64,17 +46,50 @@ public:
         return ans;
     }
 
-    long long traceAB_flat() {
-        long long ans=0;
-        for (int i=0; i<N; ++i) {
-            int row = i*N;
+public:
+    static long long trace_via_matmul(const std::vector<int>& Aflat,
+                                      const std::vector<int>& Bflat) {
+        std::vector<long long> Cflat(S);
 
-            for (int k=0; k<N; ++k) {
-                ans+= 1LL * Aflat[row+k] * Bflat[k*N+i];
+        matmul_128_blocked(Aflat, Bflat, Cflat);
+
+        return trace_from_C(Cflat);
+    }
+
+    static long long trace_direct(const std::vector<int>& Aflat,
+                                  const std::vector<int>& Bflat) {
+        long long ans = 0;
+
+        for (int i = 0; i < N; ++i) {
+            int row = i * N;
+
+            for (int k = 0; k < N; ++k) {
+                ans += 1LL * Aflat[row + k] * Bflat[k * N + i];
             }
         }
+
         return ans;
+    }
+
+    static long long trace_direct_openmp(const std::vector<int>& Aflat,
+                                         const std::vector<int>& Bflat) {
+#ifdef USE_OPENMP
+        long long ans = 0;
+
+        #pragma omp parallel for reduction(+:ans)
+        for (int i = 0; i < N; ++i) {
+            int row = i * N;
+
+            for (int k = 0; k < N; ++k) {
+                ans += 1LL * Aflat[row + k] * Bflat[k * N + i];
+            }
+        }
+
+        return ans;
+#else
+        return trace_direct(Aflat, Bflat);
+#endif
     }
 };
 
-#endif //HIGH_FREQUENCY_TRADING_CHALLENGE_MM_H
+#endif

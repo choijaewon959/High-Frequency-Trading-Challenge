@@ -12,7 +12,7 @@ using namespace std;
 
 #define PORT 12345
 #define PROFILE_OUTPUT "profile.csv"
-#define MODEL_VERSION "int_reader_string_buffer_v1"
+#define MODEL_VERSION "matmul_direct_trace_openmp_off"
 
 int main() {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -44,7 +44,7 @@ int main() {
     Profiler profiler(PROFILE_OUTPUT, MODEL_VERSION);
 
     while (true) {
-        auto t0 = profiler.now();
+        // auto t0 = profiler.now();
 
         int challengeId;
         int N;
@@ -87,11 +87,9 @@ int main() {
 
         // Calculate tr(AB)
         mm compute;
-        compute.setMatrices(A, B);
-        //calcul matmul blocked
-        compute.matmul_128_blocked();
-        long long answer_benchmark = compute.traceFromC();
-        long long answer = compute.traceAB_flat();
+        // long long answer = compute.trace_via_matmul(A, B);
+        // long long answer = compute.trace_direct(A, B);
+        long long answer = compute.trace_direct_openmp(A, B);
 
         auto t4 = profiler.now();
 
@@ -100,18 +98,18 @@ int main() {
 
         auto t5 = profiler.now();
 
-        long long header_us = profiler.usBetween(t0, t1);
+        // long long header_us = profiler.usBetween(t0, t1);
         long long read_A_us = profiler.usBetween(t1, t2);
         long long read_B_us = profiler.usBetween(t2, t3);
         long long compute_us = profiler.usBetween(t3, t4);
         long long send_us = profiler.usBetween(t4, t5);
-        long long total_us = profiler.usBetween(t0, t5);
+        long long total_us = profiler.usBetween(t1, t5);
 
-        /*
+
         profiler.log(
             challengeId,
             N,
-            header_us,
+            // header_us,
             read_A_us,
             read_B_us,
             compute_us,
@@ -119,9 +117,9 @@ int main() {
             total_us,
             answer
         );
-        */
 
-        //cout << "Sent answer: " << answer << endl;
+
+        cout << "Sent answer: " << answer << endl;
     }
 
     close(sock);
