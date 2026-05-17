@@ -61,53 +61,39 @@ int main() {
 
         cout << "Received challenge " << challengeId << " with N = " << N << endl;
 
-        vector<vector<int>> A(N, vector<int>(N));
-        vector<vector<int>> B(N, vector<int>(N));
+        // Update Matrices
+        vector<int> A(N * N);
+        vector<int> B(N * N);
 
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (!reader.readInt(A[i][j])) {
-                    cerr << "Failed reading A" << endl;
-                    close(sock);
-                    return 1;
-                }
+        for (int i = 0; i < N * N; ++i) {
+            if (!reader.readInt(A[i])) {
+                cerr << "Failed reading A" << endl;
+                close(sock);
+                return 1;
             }
         }
 
         auto t2 = profiler.now();
 
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                if (!reader.readInt(B[i][j])) {
-                    cerr << "Failed reading B" << endl;
-                    close(sock);
-                    return 1;
-                }
+        for (int i = 0; i < N * N; ++i) {
+            if (!reader.readInt(B[i])) {
+                cerr << "Failed reading B" << endl;
+                close(sock);
+                return 1;
             }
         }
 
         auto t3 = profiler.now();
 
-        //long long answer = 0;
-
-        // Example: C[0][0] of A * B
-        //for (int k = 0; k < N; k++) {
-        //    answer += 1LL * A[0][k] * B[k][0];
-        //}
-
-        long long answer;
-
+        // Calculate tr(AB)
         mm compute;
-
-        compute.flatten(A, B);
+        compute.setMatrices(A, B);
         //calcul matmul blocked
         compute.matmul_128_blocked();
-        //answer =compute.result();
-        answer = compute.traceAB_flat();
+        long long answer_benchmark = compute.traceFromC();
+        long long answer = compute.traceAB_flat();
 
         auto t4 = profiler.now();
-
-        //send(sock, reinterpret_cast<char*>(&answer[0]), answer.size() * sizeof(long long), 0);
 
         string answerStr = to_string(answer) + "\n";
         send(sock, answerStr.c_str(), answerStr.size(), 0);
