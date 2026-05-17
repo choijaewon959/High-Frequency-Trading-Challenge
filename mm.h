@@ -5,6 +5,7 @@
 #ifndef HIGH_FREQUENCY_TRADING_CHALLENGE_MM_H
 #define HIGH_FREQUENCY_TRADING_CHALLENGE_MM_H
 #include <vector>
+#include <algorithm>
 using namespace std;
 
 constexpr int N = 128;
@@ -19,14 +20,11 @@ class mm {
 public:
     mm() : Aflat(N*N), Bflat(N*N), Cflat(N*N, 0) {}
 
-    void flatten(const vector<vector<int>>& A, const vector<vector<int>>& B) {
-        for (int i=0; i<N; ++i) {
-            for (int j=0; j<N; ++j) {
-                Aflat[i*N + j] = A[i][j];
-                Bflat[i*N + j] = B[i][j];
-            }
-        }
+    void setMatrices(const vector<int>& A, const vector<int>& B) {
+        Aflat = A;
+        Bflat = B;
     }
+
     void matmul_128_blocked() {
         fill(Cflat.begin(), Cflat.end(), 0);
 
@@ -40,7 +38,7 @@ public:
 
                     for (int i = ii; i<ii+BS; ++i) {
                         for (int k=kk ; k<kk+BS; ++k) {
-                            double a = A[i*N + k];
+                            int a = A[i*N + k];
 
                             for (int j = jj; j<jj+BS; ++j) {
                                 C[i*N + j] += 1LL * a*B[k*N + j];
@@ -51,9 +49,21 @@ public:
             }
         }
     }
+
     const vector<long long>& result() const {
         return Cflat;
     }
+
+    long long traceFromC() const {
+        long long ans = 0;
+
+        for (int i = 0; i < N; ++i) {
+            ans += Cflat[i * N + i];
+        }
+
+        return ans;
+    }
+
     long long traceAB_flat() {
         long long ans=0;
         for (int i=0; i<N; ++i) {
